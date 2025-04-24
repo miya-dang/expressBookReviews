@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
@@ -77,5 +78,65 @@ public_users.get('/review/:isbn',function (req, res) {
     res.status(404).send('Book not found.');
   }
 });
+
+
+// Get the list of books using Promise callbacks with Axios
+public_users.get('/promise_get_books', function (req, res) {
+  axios.get('http://localhost:5000/')
+    .then(response => {
+      res.send(response.data);
+    })
+    .catch(error => {
+      res.status(500).send('Error fetching books');
+    });
+});
+
+// Get the list of books using async/await with Axios
+public_users.get('/async_get_books', async function (req, res) {
+  try {
+    const response = await axios.get('http://localhost:5000/');
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send('Error fetching books');
+  }
+});
+
+
+// Get the book details based on ISBN using async/await with Axios
+public_users.get('/async_get_book_by_isbn/:isbn', async function (req, res) {
+  const isbn = req.params.isbn;
+  try {
+    const response = await axios.get(`http://localhost:5000/isbn/${isbn}`);
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send('Error fetching book details');
+  }
+});
+
+
+// Get the book details based on author using Promise callbacks with Axios
+public_users.get('/promise_get_book_by_author/:author', function (req, res) {
+  const author = req.params.author;
+  axios.get(`http://localhost:5000/author/${author}`)
+    .then(response => {
+      res.send(response.data);
+    })
+    .catch(error => {
+      res.status(500).send('Error fetching book details');
+    });
+});
+
+
+// Get the book details based on title using async/await with Axios
+public_users.get('/async_get_book_by_title/:title', async function (req, res) {
+  const title = req.params.title;
+  try {
+    const response = await axios.get(`http://localhost:5000/title/${title}`);
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send('Error fetching book details');
+  }
+});
+
 
 module.exports.general = public_users;
