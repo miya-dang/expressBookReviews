@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 let books = require("./booksdb.js");
 const regd_users = express.Router();
 
-let users = [];
+let users = [{"username": "Mary Sue", "password": "mARYsUE123"}];
 
 const isValid = (username)=>{ //returns boolean
 //write code to check is the username is valid
@@ -51,21 +51,31 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  const isbn = req.params.isbn;
-  const review = req.query;
-  const username = req.session.authorization.username;
-  // Check if review is provided
+  const { review } = req.query;
+  const { isbn } = req.params;
+  // Check if the user is logged in
+  if (!req.session.authorization) {
+      return res.status(401).send('User not logged in');
+  }
+  // Extract the username from the session
+  const { username } = req.session.authorization;
+  // Check if the review is provided
   if (!review) {
-    return res.status(400).json({ message: "Review is required" });
+      return res.status(400).send('Review is required');
   }
-  // Check if book exists
+  // Check if the book exists
   if (!books[isbn]) {
-    return res.status(404).json({ message: "Book not found" });
+      return res.status(404).send('Book not found');
   }
-  // Add review to book reviews
+  // Initialize the reviews for the book if not already present
+  if (!books[isbn].reviews) {
+      books[isbn].reviews = {};
+  }
+  // Add or modify the review for the user
   books[isbn].reviews[username] = review;
-  return res.status(200).json({ message: "Review added successfully" });
 
+  // Send a success response
+  res.status(200).send('Review added/modified successfully');
 });
 
 module.exports.authenticated = regd_users;
